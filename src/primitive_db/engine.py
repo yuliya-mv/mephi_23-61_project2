@@ -50,3 +50,6 @@ def run():
             table_name = parts[1]
             metadata = drop_table(metadata, table_name)
             save_metadata("db_meta.json", metadata)
+
+        else:
+            print(f"Некорректное значение: {parts[0]}. Попробуйте снова.")
