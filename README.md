@@ -2,7 +2,8 @@
 
 ## Управление таблицами
 ***Процесс работы с таблицей***
-https://asciinema.org/a/vhGUqdBqQFFHb8x2
+
+https://asciinema.org/a/dyXfKA6IYTXb1qMB
 
 Функции
 ```

@@ -1,9 +1,28 @@
 import shlex
-
+from prettytable import PrettyTable
 from prompt import string
 
-from primitive_db.core import create_table, drop_table, list_tables
-from primitive_db.utils import load_metadata, save_metadata
+from primitive_db.core import (
+    create_table,
+    drop_table,
+    list_tables,
+    insert,
+    select,
+    update,
+    delete,
+)
+from primitive_db.parser import (
+    parse_insert,
+    parse_select,
+    parse_update,
+    parse_delete,
+)
+from primitive_db.utils import (
+    load_metadata,
+    save_metadata,
+    load_table_data,
+    save_table_data,
+)
 
 
 def welcome():
@@ -32,7 +51,7 @@ def run():
         metadata = load_metadata("db_meta.json")
         command = input("Введите команду: ")
 
-        parts = shlex.split(command)
+        parts = shlex.split(command, posix=False)
 
         if not parts:
             continue
@@ -65,6 +84,122 @@ def run():
 
         elif parts[0] == "list_tables":
             list_tables(metadata)
+
+        elif parts[0] == "insert":
+            try:
+                table_name, values = parse_insert(parts)
+
+                table_data = load_table_data(
+                    f"data/{table_name}.json"
+                )
+
+                table_data = insert(
+                    metadata,
+                    table_name,
+                    table_data,
+                    values,
+                )
+
+                save_table_data(
+                    f"data/{table_name}.json",
+                    table_data,
+                )
+
+            except ValueError:
+                print(
+                    "Некорректное значение. "
+                    "Попробуйте снова."
+                )
+
+        elif parts[0] == "select":
+            try:
+                table_name, where = parse_select(parts)
+
+                table_data = load_table_data(
+                    f"data/{table_name}.json"
+                )
+
+                result = select(
+                    metadata,
+                    table_name,
+                    table_data,
+                    where,
+                )
+
+                table = PrettyTable()
+
+                if result:
+                    table.field_names = result[0].keys()
+
+                    for record in result:
+                        table.add_row(record.values())
+
+                    print(table)
+
+            except ValueError:
+                print(
+                    "Некорректное значение. "
+                    "Попробуйте снова."
+                )
+
+        elif parts[0] == "update":
+            try:
+                (
+                    table_name,
+                    column_name,
+                    new_value,
+                    where,
+                ) = parse_update(parts)
+
+                table_data = load_table_data(
+                    f"data/{table_name}.json"
+                )
+
+                table_data = update(
+                    metadata,
+                    table_name,
+                    table_data,
+                    column_name,
+                    new_value,
+                    where,
+                )
+
+                save_table_data(
+                    f"data/{table_name}.json",
+                    table_data,
+                )
+
+            except ValueError:
+                print(
+                    "Некорректное значение. "
+                    "Попробуйте снова."
+                )
+
+        elif parts[0] == "delete":
+            try:
+                table_name, where = parse_delete(parts)
+
+                table_data = load_table_data(
+                    f"data/{table_name}.json"
+                )
+
+                table_data = delete(
+                    metadata,
+                    table_name,
+                    table_data,
+                    where,
+                )
+
+                save_table_data(
+                    f"data/{table_name}.json",
+                    table_data,
+                )
+
+            except ValueError:
+                print(
+                    "Некорректное значение. "
+                    "Попробуйте снова."
+                )
 
         elif parts[0] == "drop_table":
             if len(parts) < 2:
