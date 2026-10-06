@@ -1,3 +1,6 @@
+import os
+
+
 def create_table(metadata, table_name, columns):
     allowed = (
         "abcdefghijklmnopqrstuvwxyz"
@@ -12,6 +15,8 @@ def create_table(metadata, table_name, columns):
     if table_name in metadata:
         print(f'Ошибка: Таблица "{table_name}" уже существует.')
         return metadata
+
+    os.makedirs("data", exist_ok=True)
 
     valid_types = {"int", "str", "bool"}
     parsed_columns = []
@@ -84,6 +89,12 @@ def drop_table(metadata, table_name):
         return metadata
 
     del metadata[table_name]
+
+    filepath = f"data/{table_name}.json"
+
+    if os.path.exists(filepath):
+        os.remove(filepath)
+
     print(f'Таблица "{table_name}" успешно удалена.')
 
     return metadata
@@ -247,4 +258,3 @@ def delete(metadata, table_name, table_data, where):
     print(f'Запись успешно удалена из таблицы "{table_name}".')
 
     return new_table_data
-
