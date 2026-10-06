@@ -82,6 +82,17 @@ def list_tables(metadata):
     for table_name in metadata:
         print(f"- {table_name}")
 
+def info_table(metadata, table_name, table_data):
+    if table_name not in metadata:
+        print(f'Ошибка: Таблица "{table_name}" не существует.')
+        return
+
+    columns = metadata[table_name]
+
+    print(f"Таблица: {table_name}")
+    print(f"Столбцы: {', '.join(columns)}")
+    print(f"Количество записей: {len(table_data)}")
+
 
 def drop_table(metadata, table_name):
     if table_name not in metadata:
@@ -140,7 +151,8 @@ def insert(metadata, table_name, table_data, values):
 
     new_table_data = table_data + [record]
 
-    print(f'Запись успешно добавлена в таблицу "{table_name}".')
+    print(f'Запись с ID={new_id} успешно добавлена '
+    f'в таблицу "{table_name}".')
 
     return new_table_data
 
@@ -209,22 +221,23 @@ def update(metadata, table_name, table_data, column_name, new_value, where):
     where_column, where_value = where
 
     new_table_data = []
-    updated = False
+    updated_id = None
 
     for record in table_data:
         new_record = record.copy()
 
         if new_record.get(where_column) == where_value:
             new_record[column_name] = new_value
-            updated = True
+            updated_id = new_record["ID"]
 
         new_table_data.append(new_record)
 
-    if not updated:
+    if updated_id is None:
         print("Запись не найдена. Попробуйте снова.")
         return table_data
 
-    print(f'Запись успешно обновлена в таблице "{table_name}".')
+    print(
+    f'Запись с ID={updated_id} в таблице "{table_name}" успешно обновлена.')
 
     return new_table_data
 
@@ -245,6 +258,13 @@ def delete(metadata, table_name, table_data, where):
         )
         return table_data
 
+    deleted_id = None
+
+    for record in table_data:
+        if record.get(where_column) == where_value:
+            deleted_id = record["ID"]
+            break
+
     new_table_data = [
         record
         for record in table_data
@@ -255,6 +275,6 @@ def delete(metadata, table_name, table_data, where):
         print("Запись не найдена. Попробуйте снова.")
         return table_data
 
-    print(f'Запись успешно удалена из таблицы "{table_name}".')
+    print(f'Запись с ID={deleted_id} успешно удалена из таблицы "{table_name}".')
 
     return new_table_data
