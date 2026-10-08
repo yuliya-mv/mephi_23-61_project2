@@ -1,5 +1,7 @@
 import os
-from decorators import log_time, confirm_action, cache
+
+from decorators import cache, confirm_action, log_time
+
 
 def create_table(metadata, table_name, columns):
     allowed = (

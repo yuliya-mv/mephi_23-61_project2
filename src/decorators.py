@@ -1,5 +1,7 @@
 import time
+
 from prompt import string
+
 
 def log_time(func):
     def wrapper(*args, **kwargs):

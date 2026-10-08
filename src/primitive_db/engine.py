@@ -1,7 +1,6 @@
 import shlex
 
 from prettytable import PrettyTable
-from prompt import string
 
 from primitive_db.core import (
     create_table,
@@ -27,27 +26,6 @@ from primitive_db.utils import (
 )
 
 
-def welcome():
-    print(
-        "project\n\n"
-        "Первая попытка запустить проект!\n\n"
-        "***\n"
-        "<command> exit - выйти из программы\n"
-        "<command> help - справочная информация"
-    )
-
-    command = string("Введите команду: ")
-
-    while command != "exit":
-        if command == "help":
-            print(
-                "\n"
-                "<command> exit - выйти из программы\n"
-                "<command> help - справочная информация"
-            )
-
-        command = string("Введите команду: ")
-
 def run():
     while True:
         metadata = load_metadata("db_meta.json")
@@ -67,13 +45,15 @@ def run():
         elif parts[0] == "create_table":
             if len(parts) < 2:
                 print(
-                    "Для функции create_table не хватает имени таблицы. Попробуйте снова."
+                    "Для функции create_table нет имени таблицы. " \
+                    "Попробуйте снова."
                 )
                 continue
 
             if len(parts) < 3:
                 print(
-                    "Для функции create_table не хватает столбцов. Попробуйте снова."
+                    "Для функции create_table не хватает столбцов. " \
+                    "Попробуйте снова."
                 )
                 continue
 
@@ -255,8 +235,9 @@ def show_help():
         "<cmd> create_table <имя_таблицы> <Col1:type> <Col2:type> - создать таблицу\n"
         "<cmd> list_tables - показать список всех таблиц\n"
         "<cmd> drop_table <имя_таблицы> - удалить таблицу\n\n"
-        "<cmd> insert into <имя_таблицы> values (<val1>, <val2>, ...) - создать запись\n"
-        "<cmd> select from <имя_таблицы> where <Col> = <val> - найти записи по условию\n"
+        "<cmd> insert into <имя_таблицы> values (<val1>, <val2>, ..) - создать запись\n"
+        "<cmd> select from <имя_таблицы> where <Col> = <val>"
+        "- найти записи по условию\n"
         "<cmd> select from <имя_таблицы> - прочитать все записи\n"
         "<cmd> update <имя_таблицы> set <Col1> = <новое_val1> "
         "where <Col_условия> = <val_условия> - обновить запись\n"
