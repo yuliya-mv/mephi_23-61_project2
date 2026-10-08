@@ -72,3 +72,7 @@ https://asciinema.org/a/qwerFibuEfrSJaWc
 Столбцы: ID:int, name:str, age:int, is_active:bool
 Количество записей: 0 
 ```
+
+## Декораторы и замыкания
+
+https://asciinema.org/a/IsxDCCsljBI9erFI
