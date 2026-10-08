@@ -1,6 +1,7 @@
 import os
 
 from decorators import cache, confirm_action, log_time
+from primitive_db.constants import VALID_TYPES
 
 
 def create_table(metadata, table_name, columns):
@@ -20,7 +21,6 @@ def create_table(metadata, table_name, columns):
 
     os.makedirs("data", exist_ok=True)
 
-    valid_types = {"int", "str", "bool"}
     parsed_columns = []
 
     for column in columns:
@@ -29,13 +29,14 @@ def create_table(metadata, table_name, columns):
         if len(parts) != 2 or not parts[0] or not parts[1]:
             print(
                 f"Некорректное значение: {column}. "
-                "Столбец должен содержать имя и тип. Попробуйте снова."
+                "Столбец должен содержать имя и тип. "
+                "Попробуйте снова."
             )
             return metadata
 
         column_name, column_type = parts
 
-        if column_type not in valid_types:
+        if column_type not in VALID_TYPES:
             print(
                 f"Некорректное значение: {column_type}. "
                 "Попробуйте снова."
@@ -84,6 +85,7 @@ def list_tables(metadata):
     for table_name in metadata:
         print(f"- {table_name}")
 
+
 def info_table(metadata, table_name, table_data):
     if table_name not in metadata:
         print(f'Ошибка: Таблица "{table_name}" не существует.')
@@ -113,6 +115,7 @@ def drop_table(metadata, table_name):
     select.clear_cache()
 
     return metadata
+
 
 @log_time
 def insert(metadata, table_name, table_data, values):
@@ -157,9 +160,13 @@ def insert(metadata, table_name, table_data, values):
 
     select.clear_cache()
 
-    print(f'Запись с ID={new_id} успешно добавлена в таблицу "{table_name}".')
+    print(
+        f'Запись с ID={new_id} успешно добавлена '
+        f'в таблицу "{table_name}".'
+    )
 
     return new_table_data
+
 
 @log_time
 @cache
@@ -173,7 +180,9 @@ def select(metadata, table_name, table_data, where=None):
 
     column_name, expected_value = where
 
-    if column_name not in [column.split(":")[0] for column in metadata[table_name]]:
+    if column_name not in [
+        column.split(":")[0] for column in metadata[table_name]
+    ]:
         print(
             f"Некорректное значение: {column_name}. "
             "Попробуйте снова."
@@ -186,8 +195,16 @@ def select(metadata, table_name, table_data, where=None):
         if record.get(column_name) == expected_value
     ]
 
+
 @log_time
-def update(metadata, table_name, table_data, column_name, new_value, where):
+def update(
+    metadata,
+    table_name,
+    table_data,
+    column_name,
+    new_value,
+    where,
+):
     if table_name not in metadata:
         print(f'Ошибка: Таблица "{table_name}" не существует.')
         return table_data
@@ -243,11 +260,14 @@ def update(metadata, table_name, table_data, column_name, new_value, where):
         return table_data
 
     print(
-    f'Запись с ID={updated_id} в таблице "{table_name}" успешно обновлена.')
+        f'Запись с ID={updated_id} в таблице '
+        f'"{table_name}" успешно обновлена.'
+    )
 
     select.clear_cache()
 
     return new_table_data
+
 
 @confirm_action
 def delete(metadata, table_name, table_data, where):
@@ -262,7 +282,8 @@ def delete(metadata, table_name, table_data, where):
 
     if where_column not in column_names:
         print(
-            f"Некорректное значение: {where_column}. Попробуйте снова."
+            f"Некорректное значение: {where_column}. "
+            "Попробуйте снова."
         )
         return table_data
 
@@ -283,7 +304,10 @@ def delete(metadata, table_name, table_data, where):
         print("Запись не найдена. Попробуйте снова.")
         return table_data
 
-    print(f'Запись с ID={deleted_id} успешно удалена из таблицы "{table_name}".')
+    print(
+        f'Запись с ID={deleted_id} успешно удалена '
+        f'из таблицы "{table_name}".'
+    )
 
     select.clear_cache()
 

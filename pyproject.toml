@@ -1,7 +1,7 @@
 [project]
 name = "mephi_23-61_project2"
 version = "0.1.0"
-description = "Add your description here"
+description = "Модуль для управления таблицами"
 readme = "README.md"
 authors = [
     { name = "yuliya-mv", email = "yuu.khoang@gmail.com" }
@@ -18,8 +18,8 @@ packages = [
     { include = "primitive_db", from = "src" }
 ]
 
-[tool.poetry.scripts]
-database = "src.primitive_db.main:main"
+[tool.poetry.group.dev.dependencies]
+ruff = ">=0.16.8,<0.17.0"
 
 [project.scripts]
 database = "primitive_db.main:main"

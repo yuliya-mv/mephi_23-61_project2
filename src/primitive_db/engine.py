@@ -2,6 +2,7 @@ import shlex
 
 from prettytable import PrettyTable
 
+from primitive_db.constants import DATA_DIR, META_FILE
 from primitive_db.core import (
     create_table,
     delete,
@@ -28,7 +29,7 @@ from primitive_db.utils import (
 
 def run():
     while True:
-        metadata = load_metadata("db_meta.json")
+        metadata = load_metadata(META_FILE)
         command = input("Введите команду: ")
 
         parts = shlex.split(command, posix=False)
@@ -45,14 +46,14 @@ def run():
         elif parts[0] == "create_table":
             if len(parts) < 2:
                 print(
-                    "Для функции create_table нет имени таблицы. " \
+                    "Для функции create_table нет имени таблицы. "
                     "Попробуйте снова."
                 )
                 continue
 
             if len(parts) < 3:
                 print(
-                    "Для функции create_table не хватает столбцов. " \
+                    "Для функции create_table не хватает столбцов. "
                     "Попробуйте снова."
                 )
                 continue
@@ -60,7 +61,7 @@ def run():
             table_name = parts[1]
             columns = parts[2:]
             metadata = create_table(metadata, table_name, columns)
-            save_metadata("db_meta.json", metadata)
+            save_metadata(META_FILE, metadata)
 
         elif parts[0] == "list_tables":
             list_tables(metadata)
@@ -68,14 +69,15 @@ def run():
         elif parts[0] == "info":
             if len(parts) < 2:
                 print(
-                    "Для функции info не хватает имени таблицы. Попробуйте снова."
+                    "Для функции info не хватает имени таблицы. "
+                    "Попробуйте снова."
                 )
                 continue
 
             table_name = parts[1]
 
             table_data = load_table_data(
-                f"data/{table_name}.json"
+                f"{DATA_DIR}/{table_name}.json"
             )
 
             info_table(
@@ -93,7 +95,7 @@ def run():
                     continue
 
                 table_data = load_table_data(
-                    f"data/{table_name}.json"
+                    f"{DATA_DIR}/{table_name}.json"
                 )
 
                 table_data = insert(
@@ -104,7 +106,7 @@ def run():
                 )
 
                 save_table_data(
-                    f"data/{table_name}.json",
+                    f"{DATA_DIR}/{table_name}.json",
                     table_data,
                 )
 
@@ -118,7 +120,7 @@ def run():
                 table_name, where = parse_select(parts)
 
                 table_data = load_table_data(
-                    f"data/{table_name}.json"
+                    f"{DATA_DIR}/{table_name}.json"
                 )
 
                 result = select(
@@ -158,7 +160,7 @@ def run():
                     continue
 
                 table_data = load_table_data(
-                    f"data/{table_name}.json"
+                    f"{DATA_DIR}/{table_name}.json"
                 )
 
                 new_table_data = update(
@@ -172,7 +174,7 @@ def run():
 
                 if new_table_data != table_data:
                     save_table_data(
-                        f"data/{table_name}.json",
+                        f"{DATA_DIR}/{table_name}.json",
                         new_table_data,
                     )
             except ValueError:
@@ -190,7 +192,7 @@ def run():
                     continue
 
                 table_data = load_table_data(
-                    f"data/{table_name}.json"
+                    f"{DATA_DIR}/{table_name}.json"
                 )
 
                 new_table_data = delete(
@@ -202,7 +204,7 @@ def run():
 
                 if new_table_data is not None and new_table_data != table_data:
                     save_table_data(
-                        f"data/{table_name}.json",
+                        f"{DATA_DIR}/{table_name}.json",
                         new_table_data,
                     )
 
@@ -222,13 +224,14 @@ def run():
 
             table_name = parts[1]
             metadata = drop_table(metadata, table_name)
-            save_metadata("db_meta.json", metadata)
+            save_metadata(META_FILE, metadata)
 
         else:
             print(
                 f"Функции {parts[0]} нет. "
                 "Попробуйте снова."
             )
+
 
 def show_help():
     print(
