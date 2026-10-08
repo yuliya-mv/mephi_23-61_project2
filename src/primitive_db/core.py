@@ -1,5 +1,5 @@
 import os
-
+from decorators import log_time, confirm_action, cache
 
 def create_table(metadata, table_name, columns):
     allowed = (
@@ -108,9 +108,11 @@ def drop_table(metadata, table_name):
 
     print(f'Таблица "{table_name}" успешно удалена.')
 
+    select.clear_cache()
+
     return metadata
 
-
+@log_time
 def insert(metadata, table_name, table_data, values):
     if table_name not in metadata:
         print(f'Ошибка: Таблица "{table_name}" не существует.')
@@ -151,12 +153,14 @@ def insert(metadata, table_name, table_data, values):
 
     new_table_data = table_data + [record]
 
-    print(f'Запись с ID={new_id} успешно добавлена '
-    f'в таблицу "{table_name}".')
+    select.clear_cache()
+
+    print(f'Запись с ID={new_id} успешно добавлена в таблицу "{table_name}".')
 
     return new_table_data
 
-
+@log_time
+@cache
 def select(metadata, table_name, table_data, where=None):
     if table_name not in metadata:
         print(f'Ошибка: Таблица "{table_name}" не существует.')
@@ -180,7 +184,7 @@ def select(metadata, table_name, table_data, where=None):
         if record.get(column_name) == expected_value
     ]
 
-
+@log_time
 def update(metadata, table_name, table_data, column_name, new_value, where):
     if table_name not in metadata:
         print(f'Ошибка: Таблица "{table_name}" не существует.')
@@ -239,9 +243,11 @@ def update(metadata, table_name, table_data, column_name, new_value, where):
     print(
     f'Запись с ID={updated_id} в таблице "{table_name}" успешно обновлена.')
 
+    select.clear_cache()
+
     return new_table_data
 
-
+@confirm_action
 def delete(metadata, table_name, table_data, where):
     if table_name not in metadata:
         print(f'Ошибка: Таблица "{table_name}" не существует.')
@@ -276,5 +282,7 @@ def delete(metadata, table_name, table_data, where):
         return table_data
 
     print(f'Запись с ID={deleted_id} успешно удалена из таблицы "{table_name}".')
+
+    select.clear_cache()
 
     return new_table_data

@@ -220,7 +220,7 @@ def run():
                     where,
                 )
 
-                if new_table_data != table_data:
+                if new_table_data is not None and new_table_data != table_data:
                     save_table_data(
                         f"data/{table_name}.json",
                         new_table_data,
