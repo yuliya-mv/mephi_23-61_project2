@@ -1,3 +1,4 @@
+
 import shlex
 
 from prettytable import PrettyTable
@@ -32,15 +33,25 @@ def run():
         metadata = load_metadata(META_FILE)
         command = input("Введите команду: ")
 
-        parts = shlex.split(command, posix=False)
+        try:
+            parts = shlex.split(command, posix=False)
+        except ValueError:
+            print("Некорректная команда. Попробуйте снова.")
+            continue
 
         if not parts:
             continue
 
         if parts[0] == "exit":
+            if len(parts) != 1:
+                print("Некорректная команда. Попробуйте снова.")
+                continue
             break
 
         elif parts[0] == "help":
+            if len(parts) != 1:
+                print("Некорректная команда. Попробуйте снова.")
+                continue
             show_help()
 
         elif parts[0] == "create_table":
@@ -60,64 +71,77 @@ def run():
 
             table_name = parts[1]
             columns = parts[2:]
-            metadata = create_table(metadata, table_name, columns)
-            save_metadata(META_FILE, metadata)
+            previous_metadata = metadata.copy()
+
+            result = create_table(metadata, table_name, columns)
+
+            if result is not None and result != previous_metadata:
+                save_metadata(META_FILE, result)
 
         elif parts[0] == "list_tables":
+            if len(parts) != 1:
+                print("Некорректная команда. Попробуйте снова.")
+                continue
+
             list_tables(metadata)
 
         elif parts[0] == "info":
-            if len(parts) < 2:
+            if len(parts) != 2:
                 print(
-                    "Для функции info не хватает имени таблицы. "
+                    "Для функции info укажите имя одной таблицы. "
                     "Попробуйте снова."
                 )
                 continue
 
             table_name = parts[1]
-
             table_data = load_table_data(
                 f"{DATA_DIR}/{table_name}.json"
             )
 
-            info_table(
-                metadata,
-                table_name,
-                table_data,
-            )
+            info_table(metadata, table_name, table_data)
 
         elif parts[0] == "insert":
             try:
                 table_name, values = parse_insert(parts)
 
                 if table_name not in metadata:
-                    print(f'Ошибка: Таблица "{table_name}" не существует.')
+                    print(
+                        f'Ошибка: Таблица "{table_name}" не существует.'
+                    )
                     continue
 
                 table_data = load_table_data(
                     f"{DATA_DIR}/{table_name}.json"
                 )
 
-                table_data = insert(
+                new_table_data = insert(
                     metadata,
                     table_name,
                     table_data,
                     values,
                 )
 
-                save_table_data(
-                    f"{DATA_DIR}/{table_name}.json",
-                    table_data,
-                )
+                if (
+                    new_table_data is not None
+                    and new_table_data != table_data
+                ):
+                    save_table_data(
+                        f"{DATA_DIR}/{table_name}.json",
+                        new_table_data,
+                    )
 
             except ValueError:
-                print(
-                    "Некорректное значение. Попробуйте снова."
-                )
+                print("Некорректное значение. Попробуйте снова.")
 
         elif parts[0] == "select":
             try:
                 table_name, where = parse_select(parts)
+
+                if table_name not in metadata:
+                    print(
+                        f'Ошибка: Таблица "{table_name}" не существует.'
+                    )
+                    continue
 
                 table_data = load_table_data(
                     f"{DATA_DIR}/{table_name}.json"
@@ -130,21 +154,17 @@ def run():
                     where,
                 )
 
-                table = PrettyTable()
-
                 if result:
-                    table.field_names = result[0].keys()
+                    table = PrettyTable()
+                    table.field_names = list(result[0].keys())
 
                     for record in result:
-                        table.add_row(record.values())
+                        table.add_row(list(record.values()))
 
                     print(table)
 
             except ValueError:
-                print(
-                    "Некорректное val. "
-                    "Попробуйте снова."
-                )
+                print("Некорректное значение. Попробуйте снова.")
 
         elif parts[0] == "update":
             try:
@@ -156,7 +176,9 @@ def run():
                 ) = parse_update(parts)
 
                 if table_name not in metadata:
-                    print(f'Ошибка: Таблица "{table_name}" не существует.')
+                    print(
+                        f'Ошибка: Таблица "{table_name}" не существует.'
+                    )
                     continue
 
                 table_data = load_table_data(
@@ -172,23 +194,26 @@ def run():
                     where,
                 )
 
-                if new_table_data != table_data:
+                if (
+                    new_table_data is not None
+                    and new_table_data != table_data
+                ):
                     save_table_data(
                         f"{DATA_DIR}/{table_name}.json",
                         new_table_data,
                     )
+
             except ValueError:
-                print(
-                    "Некорректное val. "
-                    "Попробуйте снова."
-                )
+                print("Некорректное значение. Попробуйте снова.")
 
         elif parts[0] == "delete":
             try:
                 table_name, where = parse_delete(parts)
 
                 if table_name not in metadata:
-                    print(f'Ошибка: Таблица "{table_name}" не существует.')
+                    print(
+                        f'Ошибка: Таблица "{table_name}" не существует.'
+                    )
                     continue
 
                 table_data = load_table_data(
@@ -202,29 +227,33 @@ def run():
                     where,
                 )
 
-                if new_table_data is not None and new_table_data != table_data:
+                if (
+                    new_table_data is not None
+                    and new_table_data != table_data
+                ):
                     save_table_data(
                         f"{DATA_DIR}/{table_name}.json",
                         new_table_data,
                     )
 
             except ValueError:
-                print(
-                    "Некорректное val. "
-                    "Попробуйте снова."
-                )
+                print("Некорректное значение. Попробуйте снова.")
 
         elif parts[0] == "drop_table":
-            if len(parts) < 2:
+            if len(parts) != 2:
                 print(
-                    "Для функции drop_table не хватает имени таблицы. "
+                    "Для функции drop_table укажите имя одной таблицы. "
                     "Попробуйте снова."
                 )
                 continue
 
             table_name = parts[1]
-            metadata = drop_table(metadata, table_name)
-            save_metadata(META_FILE, metadata)
+            previous_metadata = metadata.copy()
+
+            result = drop_table(metadata, table_name)
+
+            if result is not None and result != previous_metadata:
+                save_metadata(META_FILE, result)
 
         else:
             print(
@@ -235,16 +264,19 @@ def run():
 
 def show_help():
     print(
-        "<cmd> create_table <имя_таблицы> <Col1:type> <Col2:type> - создать таблицу\n"
+        "<cmd> create_table <имя_таблицы> <Col1:type> <Col2:type> "
+        "- создать таблицу\n"
         "<cmd> list_tables - показать список всех таблиц\n"
         "<cmd> drop_table <имя_таблицы> - удалить таблицу\n\n"
-        "<cmd> insert into <имя_таблицы> values (<val1>, <val2>, ..) - создать запись\n"
-        "<cmd> select from <имя_таблицы> where <Col> = <val>"
+        "<cmd> insert into <имя_таблицы> values (<val1>, <val2>, ..) "
+        "- создать запись\n"
+        "<cmd> select from <имя_таблицы> where <Col> = <val> "
         "- найти записи по условию\n"
         "<cmd> select from <имя_таблицы> - прочитать все записи\n"
         "<cmd> update <имя_таблицы> set <Col1> = <новое_val1> "
         "where <Col_условия> = <val_условия> - обновить запись\n"
-        "<cmd> delete from <имя_таблицы> where <Col> = <val> - удалить запись\n\n"
+        "<cmd> delete from <имя_таблицы> where <Col> = <val> "
+        "- удалить запись\n\n"
         "<cmd> info <имя_таблицы> - вывести информацию о таблице\n"
         "<cmd> exit - выход из программы\n"
         "<cmd> help - справочная информация"
